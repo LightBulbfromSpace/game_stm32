@@ -13,7 +13,7 @@ set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 set(TARGET_NAME ${PROJECT_NAME})
 
 # Add libopencm3
-
+add_definitions(-DSTM32F1)
 
 # Set compiler and utility path (actual if arm-none-eabi is not in PATH env variable)
 set(ARM_TOOLCHAIN_PATH $ENV{ARM_TOOLCHAIN_PATH})
@@ -40,6 +40,11 @@ set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--gc-sections ")
 # Passing flags to cmake linker variable
 set(CMAKE_C_LINK_FLAGS ${LINKER_FLAGS})
 
+include_directories(cmsis)
+include_directories(stm32)
+include_directories(lib)
+include_directories(libs/libopencm3)
+
 set(OPENCM3_PATH ${PROJECT_SOURCE_DIR}/libs/libopencm3)
 # It's a library build target from external makefile
 include(ExternalProject)
@@ -47,7 +52,7 @@ ExternalProject_Add(opencm3_build
     SOURCE_DIR ${OPENCM3_PATH}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND
-    PREFIX= ${ARM_TOOLCHAIN_PATH} arm-none-eabi-
+    PREFIX=${ARM_TOOLCHAIN_PATH}arm-none-eabi-
     TARGETS=stm32/f1
     make -C <SOURCE_DIR>
     BUILD_IN_SOURCE TRUE
@@ -63,22 +68,21 @@ lib/utils.c
 lib/spi.c
 main.c)
 
-
-#file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/.gdbinit DESTINATION ${EXECUTABLE_OUTPUT_PATH})
-
 add_executable(${TARGET_NAME} ${SOURCE_FILES})
 
 add_dependencies (${TARGET_NAME} opencm3)
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/.gdbinit DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+
 # Public include dirs for lib
 set(OPENCM3_INC_DIRS "${OPENCM3_PATH}/include" )
 # Specify library name to import
-add_library (opencm3 STATIC IMPORTED)
+add_library(opencm3 STATIC IMPORTED)
 # Library must be build via `opencm3_build` before linking
-add_dependencies (opencm3 opencm3_build)
+add_dependencies(opencm3 opencm3_build)
 # Set location of library and it's public headers
-set_target_properties (opencm3 PROPERTIES IMPORTED_LOCATIO N
-${OPENCM3_PATH} /lib/libopencm3_stm32f1.a INTERFACE_INCLUDE_DIRECTORIES
+set_target_properties (opencm3 PROPERTIES IMPORTED_LOCATION
+${OPENCM3_PATH}/lib/libopencm3_stm32f1.a INTERFACE_INCLUDE_DIRECTORIES
 ${OPENCM3_INC_DIRS} )
 target_link_libraries (${PROJECT_NAME} opencm3) 
 
@@ -90,20 +94,8 @@ add_definitions(-DSTM32F10X_MD)
 # We don't use SPL in out template
 # add_definitions(-DUSE_STDPERIPH_DRIVER)
 
-include_directories(cmsis)
-include_directories(stm32)
-include_directories(lib)
 
-# set(SOURCE_FILES
-#     stm32/startup/startup_stm32f10x_md.c # Choose startup file for your MCU
-#     stm32/system_stm32f10x.c
-#     syscalls/syscalls.c
-#     lib/utils.c
-#     lib/spi.c
-#     main.c)
-
-
- file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/.gdbinit DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+# file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/.gdbinit DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 
 
 
@@ -122,7 +114,7 @@ add_custom_command(OUTPUT ${HEX_TARGET}
                     COMMAND ${OBJCOPY} -O ihex ${ELF_TARGET} ${HEX_TARGET}
                     DEPENDS ${ELF_TARGET} ${PROJECT_NAME})
 
-add_custom_target(hex DEPENDS ${HEX_TARGET})
+add_custom_target(hex DEPENDS ${HEX_TARGarm-none-eabi-})
 
 # Command and target to flash firmware
 add_custom_command(OUTPUT flash_target
@@ -131,4 +123,4 @@ add_custom_command(OUTPUT flash_target
 
 add_custom_target(flash DEPENDS flash_target)
 
-target_link_libraries(${PROJECT_NAME} custom)
+#target_link_libraries(${PROJECT_NAME} custom_lib)
