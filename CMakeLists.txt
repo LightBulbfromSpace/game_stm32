@@ -5,12 +5,15 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
 
-project(stm32_experiments)
+project(game_stm32)
 
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
 set(TARGET_NAME ${PROJECT_NAME})
+
+# Add libopencm3
+
 
 # Set compiler and utility path (actual if arm-none-eabi is not in PATH env variable)
 set(ARM_TOOLCHAIN_PATH $ENV{ARM_TOOLCHAIN_PATH})
@@ -27,7 +30,8 @@ set(CMAKE_C_FLAGS "-mcpu=cortex-m3 -mthumb -std=c99")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdata-sections -ffunction-sections -mlittle-endian -g3")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-move-loop-invariants -fsigned-char -ffreestanding")
 
-set(LINKER_FLAGS "-nostdlib -nostartfiles")
+#set(LINKER_FLAGS "-nostdlib -nostartfiles")
+set(LINKER_FLAGS "-nostartfiles")
 set(LINKER_FLAGS "${LINKER_FLAGS} -Xlinker -Map -Xlinker ${TARGET_NAME}.map ")
 # Choose ld file for your MCU carefully
 set(LINKER_FLAGS "${LINKER_FLAGS} -Xlinker -T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f103c8.ld")
@@ -46,14 +50,14 @@ add_definitions(-DSTM32F10X_MD)
 
 include_directories(cmsis)
 include_directories(stm32)
-include_directories(custom_lib/utils)
-add_subdirectory(custom_lib)
+include_directories(lib)
 
 set(SOURCE_FILES
     stm32/startup/startup_stm32f10x_md.c # Choose startup file for your MCU
     stm32/system_stm32f10x.c
     syscalls/syscalls.c
-    custom_lib/src/utils.c
+    lib/utils.c
+    lib/spi.c
     main.c)
 
 
